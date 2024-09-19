@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchData() {
-        // Show loading indicator (optional)
+        // Show loading indicator
         progressBar.setVisibility(View.VISIBLE);
 
         Gson gson = new GsonBuilder().create();
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Sort items by listId and then by name
-        Collections.sort(filteredItems, new Comparator<FetchItem>() {
+        filteredItems.sort(new Comparator<FetchItem>() {
             @Override
             public int compare(FetchItem o1, FetchItem o2) {
                 if (o1.getListId() != o2.getListId()) {
