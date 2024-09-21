@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FetchRewardsApp</string>
+    <string name="item_name">Item Name</string>
+    <string name="list_id">List ID</string>
 </resources>

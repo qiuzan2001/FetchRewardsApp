@@ -5,6 +5,6 @@
     android:layout_height="wrap_content"
     android:background="#EEEEEE"
     android:padding="16dp"
-    android:text="List ID"
+    android:text="@string/list_id"
     android:textAppearance="?android:attr/textAppearanceMedium"
     android:textStyle="bold" />

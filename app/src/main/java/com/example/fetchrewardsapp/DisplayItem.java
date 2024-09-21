@@ -4,7 +4,7 @@ public abstract class DisplayItem {
 
     // Header subclass
     public static class Header extends DisplayItem {
-        private int listId;
+        private final int listId;
 
         public Header(int listId) {
             this.listId = listId;
@@ -17,7 +17,7 @@ public abstract class DisplayItem {
 
     // Item subclass
     public static class Item extends DisplayItem {
-        private String name;
+        private final String name;
 
         public Item(String name) {
             this.name = name;

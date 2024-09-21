@@ -1,5 +1,6 @@
 package com.example.fetchrewardsapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,11 +15,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,7 +29,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private FetchItemAdapter adapter;
     private ProgressBar progressBar;
 
     @Override
@@ -45,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchData() {
-        // Show loading indicator
         progressBar.setVisibility(View.VISIBLE);
 
         Gson gson = new GsonBuilder().create();
@@ -56,36 +54,44 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         FetchApiService apiService = retrofit.create(FetchApiService.class);
+
         Call<List<FetchItem>> call = apiService.getItems();
 
+        // execute the call asynchronously
         call.enqueue(new Callback<List<FetchItem>>() {
             @Override
-            public void onResponse(Call<List<FetchItem>> call, Response<List<FetchItem>> response) {
-                // Hide loading indicator
+            public void onResponse(@NonNull Call<List<FetchItem>> call, @NonNull Response<List<FetchItem>> response) {
                 progressBar.setVisibility(View.GONE);
 
+                //check if the response is successful and has a body
                 if (response.isSuccessful() && response.body() != null) {
                     List<FetchItem> items = response.body();
                     processDataAndSetupRecyclerView(items);
                 } else {
-                    Toast.makeText(MainActivity.this, "Failed to retrieve data.", Toast.LENGTH_SHORT).show();
+                    //show a Toast message if the response is unsuccessful or empty
+                    showError("Failed to retrieve data.");
                     Log.e("MainActivity", "Response unsuccessful or empty.");
                 }
             }
 
+            // network call fails handle
             @Override
-            public void onFailure(Call<List<FetchItem>> call, Throwable t) {
-                // Hide loading indicator
+            public void onFailure(@NonNull Call<List<FetchItem>> call, @NonNull Throwable t) {
                 progressBar.setVisibility(View.GONE);
-
-                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showError("Error: " + t.getMessage());
                 Log.e("MainActivity", "onFailure: " + t.getMessage());
             }
         });
     }
 
+    // helper func to display an error as Toast
+    private void showError(String message) {
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+
+
     private void processDataAndSetupRecyclerView(List<FetchItem> items) {
-        // Filter out items with null or empty names
+        // filter out items with null or empty names
         List<FetchItem> filteredItems = new ArrayList<>();
         for (FetchItem item : items) {
             if (item.getName() != null && !item.getName().trim().isEmpty()) {
@@ -93,40 +99,37 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Sort items by listId and then by name
-        filteredItems.sort(new Comparator<FetchItem>() {
-            @Override
-            public int compare(FetchItem o1, FetchItem o2) {
-                if (o1.getListId() != o2.getListId()) {
-                    return Integer.compare(o1.getListId(), o2.getListId());
-                } else {
-                    return o1.getName().compareToIgnoreCase(o2.getName());
-                }
+        //sort items by listId and then by name
+        filteredItems.sort((o1, o2) -> {
+            if (o1.getListId() != o2.getListId()) {
+                return Integer.compare(o1.getListId(), o2.getListId());
+            } else {
+                return o1.getName().compareToIgnoreCase(o2.getName());
             }
         });
 
-        // Group items by listId
+        //group items by listId
         Map<Integer, List<FetchItem>> groupedMap = new HashMap<>();
         for (FetchItem item : filteredItems) {
             if (!groupedMap.containsKey(item.getListId())) {
                 groupedMap.put(item.getListId(), new ArrayList<>());
             }
-            groupedMap.get(item.getListId()).add(item);
+            Objects.requireNonNull(groupedMap.get(item.getListId())).add(item);
         }
 
-        // Prepare the display list with headers
+        //prepare the display list with headers
         List<DisplayItem> displayItemList = new ArrayList<>();
         for (Map.Entry<Integer, List<FetchItem>> entry : groupedMap.entrySet()) {
-            // Add header
+            // add header
             displayItemList.add(new DisplayItem.Header(entry.getKey()));
-            // Add items
+            // add items
             for (FetchItem item : entry.getValue()) {
                 displayItemList.add(new DisplayItem.Item(item.getName()));
             }
         }
 
-        // Initialize the adapter
-        adapter = new FetchItemAdapter(displayItemList);
+        //initialize the adapter
+        FetchItemAdapter adapter = new FetchItemAdapter(displayItemList);
         recyclerView.setAdapter(adapter);
     }
 }

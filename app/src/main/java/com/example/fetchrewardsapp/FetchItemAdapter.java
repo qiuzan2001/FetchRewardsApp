@@ -1,5 +1,6 @@
 package com.example.fetchrewardsapp;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public class FetchItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<DisplayItem> displayItemList;
+    private final List<DisplayItem> displayItemList;
 
     // View Types
     private static final int VIEW_TYPE_HEADER = 0;
@@ -34,24 +35,41 @@ public class FetchItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View view;
+
         if (viewType == VIEW_TYPE_HEADER) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_header, parent, false);
+            // inflate header layout
+            view = inflater.inflate(R.layout.item_header, parent, false);
             return new HeaderViewHolder(view);
         } else {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_layout, parent, false);
+            // inflate item layout
+            view = inflater.inflate(R.layout.item_layout, parent, false);
             return new ItemViewHolder(view);
         }
     }
 
+
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        // get the display item at the current position
         DisplayItem displayItem = displayItemList.get(position);
+
+        // check if the holder is a header or item and bind the corresponding data
         if (holder instanceof HeaderViewHolder) {
-            ((HeaderViewHolder) holder).headerTextView.setText("List " + ((DisplayItem.Header) displayItem).getListId());
+            // cast the holder to HeaderViewHolder && set the header text
+            HeaderViewHolder headerHolder = (HeaderViewHolder) holder;
+            int listId = ((DisplayItem.Header) displayItem).getListId();
+            headerHolder.headerTextView.setText("List " + listId);
         } else if (holder instanceof ItemViewHolder) {
-            ((ItemViewHolder) holder).nameTextView.setText(((DisplayItem.Item) displayItem).getName());
+            // cast the holder to ItemViewHolder && set the item name
+            ItemViewHolder itemHolder = (ItemViewHolder) holder;
+            String itemName = ((DisplayItem.Item) displayItem).getName();
+            itemHolder.nameTextView.setText(itemName);
         }
     }
+
 
     @Override
     public int getItemCount() {
